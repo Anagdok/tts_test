@@ -2,10 +2,14 @@
 import numpy as np
 import wave
 from rknnlite.api import RKNNLite
+import os
 
-# Paths to your RKNN models
-ENCODER_MODEL = "mms_tts_encoder.rknn"
-DECODER_MODEL = "mms_tts_decoder.rknn"
+# Get the directory of the current script
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+# Paths to your RKNN models (use absolute paths)
+ENCODER_MODEL = os.path.join(BASE_DIR, "mms_tts_encoder.rknn")
+DECODER_MODEL = os.path.join(BASE_DIR, "mms_tts_decoder.rknn")
 
 def save_wav(filename, audio, sample_rate=22050):
     """Save numpy float32 audio array to a wav file"""
