@@ -1,0 +1,98 @@
+Perfect — you’re on **Python 3.9.2** (which is what the Radxa Debian image for Rock 3C uses).
+That means your system expects **the RK356x rknn-lite runtime built for Python 3.9** — and we’ll check whether something older (like a 3.8 build) is installed or incomplete.
+
+---
+
+## 🧩 Step 1 — Run this one-liner to locate all `rknnlite` copies
+
+Copy-paste this entire command in your terminal:
+
+```bash
+python3 - <<'PY'
+import sys, os, importlib.util, site
+print("\nPython version:", sys.version)
+print("Search paths:\n", "\n ".join(sys.path))
+print("\nLooking for rknnlite installations...\n")
+for p in sys.path:
+    if not os.path.isdir(p): 
+        continue
+    for root, dirs, files in os.walk(p):
+        if "rknnlite" in dirs or any(f.startswith("rknnlite") for f in files):
+            print("→ Found:", root)
+PY
+```
+
+That will print every directory where any `rknnlite` package or file exists.
+
+---
+
+## 🧩 Step 2 — Remove any broken ones
+
+For each path printed that looks like:
+
+```
+/usr/lib/python3.9/dist-packages/rknnlite
+/usr/local/lib/python3.9/site-packages/rknnlite
+/home/rock/.local/lib/python3.9/site-packages/rknnlite
+```
+
+delete them **all**:
+
+```bash
+sudo rm -rf /usr/lib/python3.9/dist-packages/rknnlite
+sudo rm -rf /usr/local/lib/python3.9/site-packages/rknnlite
+rm -rf ~/.local/lib/python3.9/site-packages/rknnlite
+```
+
+*(If your one-liner showed another path, remove that too.)*
+
+---
+
+## 🧩 Step 3 — Re-install the correct runtime for RK356x + Python 3.9
+
+Radxa’s official `python3-rknnlite2` package includes the correct binary for Python 3.9 aarch64.
+Reinstall it cleanly:
+
+```bash
+sudo apt update
+sudo apt install --reinstall -y python3-rknnlite2
+```
+
+This command forces apt to overwrite any stale or partial files with the proper build.
+
+---
+
+## 🧩 Step 4 — Test the installation
+
+```bash
+python3 - <<'PY'
+from rknnlite.api import RKNNLite
+print("✅ RKNNLite import successful")
+PY
+```
+
+If you see “✅ RKNNLite import successful” and no errors — you’re fixed.
+
+---
+
+## 🧩 Step 5 — If it *still* fails
+
+That means your system package repository might not have the Python 3.9-compatible build.
+Then do this instead (manual wheel install):
+
+```bash
+cd ~
+wget https://github.com/airockchip/rknn-toolkit2/releases/download/v2.3.0/rknn_toolkit_lite2-2.3.0-cp39-cp39-manylinux_2_17_aarch64.manylinux2014_aarch64.whl
+sudo pip3 install ./rknn_toolkit_lite2-2.3.0-cp39-cp39-manylinux_2_17_aarch64.manylinux2014_aarch64.whl
+```
+
+Then test again:
+
+```bash
+python3 -c "from rknnlite.api import RKNNLite; print('✅ RKNNLite OK')"
+```
+
+---
+
+After this, you should have a clean, working `rknnlite` install that matches your Python 3.9.
+Would you like me to add a small helper script that *automatically cleans and reinstalls* the right wheel for your board (so you can just run one command next time)?
